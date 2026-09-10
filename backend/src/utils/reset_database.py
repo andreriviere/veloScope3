@@ -29,23 +29,33 @@ class ResetDatabase(metaclass=Singleton):
         if test_dao:
             mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": "project_test_dao"}).start()
             pop_data_path = self.base_path / "data" / "pop_db_test.sql"
+            pop2_data_path = self.base_path / "data" / "pop_db2.sql"
         else:
             pop_data_path = self.base_path / "data" / "pop_db.sql"
+            pop2_data_path = self.base_path / "data" / "pop_db2.sql"
 
         init_db_path = self.base_path / "data" / "init_db.sql"
 
         dotenv.load_dotenv()
 
         schema = os.environ["POSTGRES_SCHEMA"]
+        print(f"Schéma utilisé : {schema}")
+        host = os.environ["POSTGRES_HOST"]
+        print(f"Host utilisé : {host}")
         create_schema = f"DROP SCHEMA IF EXISTS {schema} CASCADE; CREATE SCHEMA {schema};"
-
         # Utilisation de l'objet Path pour lire les fichiers
         try:
             with open(init_db_path, encoding="utf-8") as init_db_file:
                 init_db_as_string = init_db_file.read()
+                print(init_db_as_string)
 
             with open(pop_data_path, encoding="utf-8") as pop_db_file:
                 pop_db_as_string = pop_db_file.read()
+                print(pop_db_as_string)
+
+            # with open(pop2_data_path, encoding="utf-8") as pop2_db_file:
+            #     pop2_db_as_string = pop2_db_file.read()
+            #     print(pop2_db_as_string)
         except FileNotFoundError as e:
             logger.error(f"Erreur de chemin : impossible de trouver le fichier {e.filename}")
             raise
@@ -56,6 +66,7 @@ class ResetDatabase(metaclass=Singleton):
                     cursor.execute(create_schema)
                     cursor.execute(init_db_as_string)
                     cursor.execute(pop_db_as_string)
+                    # cursor.execute(pop2_db_as_string)
         except Exception as e:
             logger.info(e)
             raise
@@ -70,4 +81,4 @@ class ResetDatabase(metaclass=Singleton):
 
 if __name__ == "__main__":
     ResetDatabase().run()
-    ResetDatabase().run(True)
+    # ResetDatabase().run(True)
