@@ -1,5 +1,7 @@
 from business_object.game import Game
+from business_object.player import Player
 from dao.db_connection import DBConnection
+from dao.player_dao import PlayerDao
 from utils.log_utils import get_logger, log
 from utils.singleton import Singleton
 
@@ -27,10 +29,10 @@ class GameDao(metaclass=Singleton):
                         "(%(id_player1)s, %(id_player2)s, %(game_mode)s, %(id_winner)s, %(detail)s) "
                         "RETURNING id_game;",
                         {
-                            "id_player1": game.id_player1,
-                            "id_player2": game.id_player2,
+                            "id_player1": game.player1.id_player,
+                            "id_player2": game.player2.id_player,
                             "game_mode": game.game_mode,
-                            "id_winner": game.id_winner,
+                            "id_winner": game.winner.id_player,
                             "detail": game.detail,
                         },
                     )
@@ -70,15 +72,61 @@ class GameDao(metaclass=Singleton):
 
         game = None
         if res:
+            p1 = PlayerDao().find_by_id(res["id_player1"])
+            p2 = PlayerDao().find_by_id(res["id_player2"])
+            winner = PlayerDao().find_by_id(res["id_winner"])
             game = Game(
-                id_player1=res["id_player1"],
-                id_player2=res["id_player2"],
+                id_game=res["id_game"],
+                player1=p1,
+                player2=p2,
                 game_mode=res["game_mode"],
-                id_winner=res["id_winner"],
+                winner=winner,
                 detail=res["detail"],
+                timestamp=res["timestamp"],
             )
 
         return game
+
+    @log
+    def find_all_by_player(self, player: Player) -> list[Game]:
+        """Find a player by their id.
+        Args:
+            id_player (int): The ID of the player to find
+        Returns:
+            Player matching the given id
+        """
+        try:
+            with DBConnection().connection as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT g.id_game, g.id_player1, g.id_player2, g.game_mode, g.id_winner, g.detail, g.timestamp "
+                        "  FROM game g JOIN player p                      "
+                        " ON p.id_player = g.id_player1 "
+                        "  OR p.id_player = g.id_player2 "
+                        " WHERE p.id_player = %(id_player)s;   ",
+                        {"id_player": player.id_player},
+                    )
+                    res = cursor.fetchone()
+        except Exception as e:
+            logger.error(e)
+            raise
+        games_list = []
+        if res:
+            for row in res:
+                p1 = PlayerDao().find_by_id(row["id_player1"])
+                p2 = PlayerDao().find_by_id(row["id_player2"])
+                winner = PlayerDao().find_by_id(row["id_winner"])
+                game = Game(
+                    id_game=res["id_game"],
+                    player1=p1,
+                    player2=p2,
+                    game_mode=res["game_mode"],
+                    winner=winner,
+                    detail=res["detail"],
+                    timestamp=res["timestamp"],
+                )
+                games_list.append(game)
+        return games_list
 
     @log
     def find_all(self) -> list[Game]:
@@ -104,12 +152,17 @@ class GameDao(metaclass=Singleton):
 
         if res:
             for row in res:
+                p1 = PlayerDao().find_by_id(row["id_player1"])
+                p2 = PlayerDao().find_by_id(row["id_player2"])
+                winner = PlayerDao().find_by_id(row["id_winner"])
                 game = Game(
-                    id_player1=res["id_player1"],
-                    id_player2=res["id_player2"],
-                    game_mode=res["game_mode"],
-                    id_winner=res["id_winner"],
+                    id_game=row["id_game"],
+                    player1=p1,
+                    player2=p2,
+                    game_mode=row["game_mode"],
+                    winner=winner,
                     detail=res["detail"],
+                    timestamp=row["timestamp"],
                 )
 
                 games_list.append(game)
@@ -140,10 +193,10 @@ class GameDao(metaclass=Singleton):
                         " WHERE id_game = %(id_game)s;                              ",
                         {
                             "id_game": game.id_game,
-                            "id_player1": game.id_player1,
-                            "id_player2": game.id_player2,
+                            "id_player1": game.player1.id_player,
+                            "id_player2": game.player2.id_player,
                             "game_mode": game.game_mode,
-                            "id_winner": game.id_winner,
+                            "id_winner": game.winner.id_player,
                             "detail": game.detail,
                             "timestamp": game.timestamp,
                         },

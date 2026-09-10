@@ -29,10 +29,8 @@ class ResetDatabase(metaclass=Singleton):
         if test_dao:
             mock.patch.dict(os.environ, {"POSTGRES_SCHEMA": "project_test_dao"}).start()
             pop_data_path = self.base_path / "data" / "pop_db_test.sql"
-            pop2_data_path = self.base_path / "data" / "pop_db2.sql"
         else:
             pop_data_path = self.base_path / "data" / "pop_db.sql"
-            pop2_data_path = self.base_path / "data" / "pop_db2.sql"
 
         init_db_path = self.base_path / "data" / "init_db.sql"
 
@@ -52,10 +50,6 @@ class ResetDatabase(metaclass=Singleton):
             with open(pop_data_path, encoding="utf-8") as pop_db_file:
                 pop_db_as_string = pop_db_file.read()
                 print(pop_db_as_string)
-
-            # with open(pop2_data_path, encoding="utf-8") as pop2_db_file:
-            #     pop2_db_as_string = pop2_db_file.read()
-            #     print(pop2_db_as_string)
         except FileNotFoundError as e:
             logger.error(f"Erreur de chemin : impossible de trouver le fichier {e.filename}")
             raise
