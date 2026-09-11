@@ -41,3 +41,4 @@ class GameService:
         PlayerDao().update(p2)
 
         return game
+
