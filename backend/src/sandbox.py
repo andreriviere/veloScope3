@@ -1,3 +1,5 @@
+from business_object.player import Player
+from dao.game_dao import GameDao
 from service.game_service import GameService
 from utils.env_variables import display_values, load_environment_variables
 from utils.log_utils import initialize_logs
@@ -20,3 +22,10 @@ print(g2)
 
 print(f"{g2.player1.username} : new elo -> {g2.player1.elo}")
 print(f"{g2.player2.username} : new elo -> {g2.player2.elo}")
+
+created_game = GameDao().create(g)
+player1 = Player("batricia", 1342, "bat.project.io")
+player1.id_player = 3
+list = GameDao().find_all_by_player(player1)
+for game in list:
+    print(game)

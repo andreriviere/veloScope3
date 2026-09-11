@@ -33,7 +33,7 @@ class GameDao(metaclass=Singleton):
                             "id_player2": game.player2.id_player,
                             "game_mode": game.game_mode,
                             "id_winner": game.winner.id_player,
-                            "detail": game.detail,
+                            "detail": game.description,
                         },
                     )
                     res = cursor.fetchone()
@@ -95,6 +95,7 @@ class GameDao(metaclass=Singleton):
         Returns:
             Player matching the given id
         """
+        print(player.id_player)
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
@@ -111,11 +112,14 @@ class GameDao(metaclass=Singleton):
             logger.error(e)
             raise
         games_list = []
+        print("coucouPremier")
         if res:
+            print("coucou")
             for row in res:
-                p1 = PlayerDao().find_by_id(row["id_player1"])
-                p2 = PlayerDao().find_by_id(row["id_player2"])
-                winner = PlayerDao().find_by_id(row["id_winner"])
+                print("recoucou")
+                p1 = PlayerDao().find_by_id(int(row["id_player1"]))
+                p2 = PlayerDao().find_by_id(int(row["id_player2"]))
+                winner = PlayerDao().find_by_id(int(row["id_winner"]))
                 game = Game(
                     id_game=res["id_game"],
                     player1=p1,
@@ -126,6 +130,7 @@ class GameDao(metaclass=Singleton):
                     timestamp=res["timestamp"],
                 )
                 games_list.append(game)
+                print(len(games_list))
         return games_list
 
     @log
