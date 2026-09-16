@@ -10,6 +10,7 @@ Endpoints used:
 
 import streamlit as st
 from streamlit import config
+from streamlit_geolocation import streamlit_geolocation
 
 from utils.api_client import api_client
 from utils.log_init import get_page_logger
@@ -65,7 +66,20 @@ with st.container(horizontal_alignment="center"):
             st.error(f"Connection error: {str(e)}")
 
 st.space("small")
+st.title("📍 Géolocalisation")
 
+location = streamlit_geolocation()
+
+st.write("Position :", location)
+
+if location:
+    latitude = location.get("latitude")
+    longitude = location.get("longitude")
+
+    if latitude is not None and longitude is not None:
+        st.success("Position récupérée !")
+        st.write(f"Latitude : {latitude}")
+        st.write(f"Longitude : {longitude}")
 if st.button("Sign Up"):
     st.switch_page("pages/create_player.py")
 

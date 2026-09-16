@@ -1,5 +1,4 @@
 from business_object.game import Game
-from business_object.player import Player
 from dao.db_connection import DBConnection
 from dao.player_dao import PlayerDao
 from utils.log_utils import get_logger, log
@@ -36,6 +35,7 @@ class GameDao(metaclass=Singleton):
                             "detail": game.description,
                         },
                     )
+                    print("coucou dao")
                     res = cursor.fetchone()
         except Exception as e:
             logger.error(e)
@@ -88,50 +88,55 @@ class GameDao(metaclass=Singleton):
         return game
 
     @log
-    def find_all_by_player(self, player: Player) -> list[Game]:
-        """Find a player by their id.
-        Args:
-            id_player (int): The ID of the player to find
-        Returns:
-            Player matching the given id
+    def find_all_by_player(self, id_player: int) -> list[Game]:
         """
-        print(player.id_player)
+        Returns all games involving a specific player.
+        Args:
+            id_player (int): The ID of the player to search for.
+        Returns:
+            list[Game]: A list of Game objects.
+        """
+        rows = []
+
         try:
             with DBConnection().connection as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        "SELECT g.id_game, g.id_player1, g.id_player2, g.game_mode, g.id_winner, g.detail, g.timestamp "
-                        "  FROM game g JOIN player p                      "
-                        " ON p.id_player = g.id_player1 "
-                        "  OR p.id_player = g.id_player2 "
-                        " WHERE p.id_player = %(id_player)s;   ",
-                        {"id_player": player.id_player},
+                        """
+                        SELECT *
+                          FROM game
+                         WHERE id_player1 = %(id_p)s OR id_player2 = %(id_p)s
+                         ORDER BY timestamp DESC;
+                        """,
+                        {"id_p": id_player},
                     )
-                    res = cursor.fetchone()
+                    rows = cursor.fetchall()
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Error finding games for player {id_player}: {e}")
             raise
-        games_list = []
-        print("coucouPremier")
-        if res:
-            print("coucou")
-            for row in res:
-                print("recoucou")
-                p1 = PlayerDao().find_by_id(int(row["id_player1"]))
-                p2 = PlayerDao().find_by_id(int(row["id_player2"]))
-                winner = PlayerDao().find_by_id(int(row["id_winner"]))
-                game = Game(
-                    id_game=res["id_game"],
+
+        games = []
+        for row in rows:
+            p1 = PlayerDao().find_by_id(row["id_player1"])
+            p2 = PlayerDao().find_by_id(row["id_player2"])
+
+            winner = None
+            if row["id_winner"]:
+                winner = PlayerDao().find_by_id(row["id_winner"])
+
+            games.append(
+                Game(
+                    id_game=row["id_game"],
                     player1=p1,
                     player2=p2,
-                    game_mode=res["game_mode"],
+                    game_mode=row["game_mode"],
                     winner=winner,
-                    detail=res["detail"],
-                    timestamp=res["timestamp"],
+                    description=row["detail"],
+                    timestamp=row["timestamp"],
                 )
-                games_list.append(game)
-                print(len(games_list))
-        return games_list
+            )
+
+        return games
 
     @log
     def find_all(self) -> list[Game]:
