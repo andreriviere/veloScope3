@@ -17,7 +17,7 @@ def get_player_service():
     return PlayerService()
 
 
-@router.get("/", response_model=list[PlayerReadModel], tags=["Players"])
+@router.get("/player", response_model=list[PlayerReadModel], tags=["Players"])
 async def find_all_players(player_service=Depends(get_player_service)):
     """List all players.
     Returns:
