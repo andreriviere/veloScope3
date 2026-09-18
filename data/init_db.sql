@@ -2,6 +2,7 @@
 -- Player
 -----------------------------------------------------
 DROP TABLE IF EXISTS player CASCADE;
+DROP TABLE IF EXISTS game CASCADE;
 CREATE TABLE player (
     id_player    SERIAL PRIMARY KEY,
     username     VARCHAR(30) UNIQUE,
@@ -11,7 +12,6 @@ CREATE TABLE player (
     pokemon_fan  BOOLEAN,
     access_token VARCHAR(255)
 );
-
 CREATE TABLE game (
     id_game      SERIAL PRIMARY KEY,
     id_player1   INTEGER REFERENCES player(id_player),
