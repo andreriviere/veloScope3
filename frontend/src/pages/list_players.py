@@ -26,7 +26,9 @@ if players:
     if isinstance(players, list):
         df = pd.DataFrame(players)
 
-        df["url"] = df.apply(lambda row: f"/player_stats?id_player={row['id_player']}", axis=1)
+        df["url"] = df.apply(
+            lambda row: f"/proxy/8000/player_stats?id_player={row['id_player']}", axis=1
+        )
 
         st.dataframe(
             df,

@@ -7,7 +7,6 @@ from utils.log_init import get_page_logger
 st.title("Player Stats")
 
 logger = get_page_logger("player_stats")
-
 query_params = st.query_params
 player_id = query_params.get("id_player")
 logger.info(f"Player {player_id} stats")
