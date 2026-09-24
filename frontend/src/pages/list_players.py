@@ -25,11 +25,17 @@ players = api_client.get("/player").get("data")
 if players:
     if isinstance(players, list):
         df = pd.DataFrame(players)
-        st.dataframe(df, hide_index=True)
+
+        df["url"] = df["id_player"].apply(lambda id_player: f"/player_stats?id_player={id_player}")
+
+        st.dataframe(
+            df,
+            column_config={"url": st.column_config.LinkColumn("Stats", display_text="📊")},
+            hide_index=True,
+        )
     else:
         logger.info("No players found.")
         st.info("No players found.")
-
 
 if st.button("Back to menu", type="primary"):
     st.switch_page("pages/player_menu.py")
