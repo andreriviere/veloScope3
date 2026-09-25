@@ -69,3 +69,6 @@ class GameService:
             return games
         else:
             return [g for g in games if g.game_mode == game_mode]
+
+    @log
+    def get_win_loss_stats(id_player: int)
