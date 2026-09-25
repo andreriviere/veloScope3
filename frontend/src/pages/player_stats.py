@@ -8,6 +8,7 @@ Endpoints used:
     POST /game
 """
 
+import pandas as pd
 import streamlit as st
 
 from utils.api_client import api_client
@@ -45,6 +46,7 @@ if idplayer is not None:
             if not games:
                 st.info("Ce joueur n'a pas joué")
             else:
+                rows_for_df = []
                 for g in games:
                     player1 = g["player1"]
                     player2 = g["player2"]
@@ -62,7 +64,17 @@ if idplayer is not None:
                             result = "Loss"
                     else:
                         result = "Draw"
-                    
+                    row = {
+                        "Mode": g["game_mode"],
+                        "Opponent": f"{opponent['username']} ({opponent['elo']})",
+                        "Result": result,
+                        "Date": g["timestamp"],
+                    }
+                    rows_for_df.append(row)
+
+                df = pd.DataFrame(rows_for_df)
+
+                st.dataframe(df, use_container_width=True, hide_index=True)
         else:
             st.info("Echec de l'appel api games")
     except OSError:
